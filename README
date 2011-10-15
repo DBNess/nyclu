@@ -1,61 +1,8 @@
-## To convert State Plane to Lat/Lng (WGS 84)
-## could also use: http://gitorious.org/tlevine/noaa_post_project/blobs/master/noaa.py but it hits the web
-brew install postgis
-brew install gdal
-# from http://russbrooks.com/2010/11/25/install-postgresql-9-on-os-x
-# NB: Out of the box, you authenticate against the DB using the same user account under which you ran brew install.
-#initialize the DB
-initdb /usr/local/var/postgres
-# add startup items
-cp /usr/local/Cellar/postgresql/9.0.4/org.postgresql.postgres.plist ~/Library/LaunchAgents
-launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
-#start Postgres.
-pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
-    
-# confirm that it works
-psql postgres -c "select 1;"
+ * Data Without Borders DataDive NYC Oct 14-16, 2011 *
 
-# create spatial db template
-createdb template_postgis
-psql -d template_postgis -f /usr/local/Cellar/postgresql/9.0.4/share/postgresql/contrib/postgis-1.5/postgis.sql
-psql -d template_postgis -f /usr/local/Cellar/postgresql/9.0.4/share/postgresql/contrib/postgis-1.5/spatial_ref_sys.sql 
+Team: Jason Sundram, Vanessa Hurst, Javier de la Torre
 
+Project: Load and process NYCLU police report data on Stop, Question, Frisk reports (SQF)
 
-# create DB based on template
-createdb -T template_postgis nyclu
-psql -d nyclu
-
-# for every column in header, make a text entry
-# run that as a command in psql
-cat CREATE_TABLE.txt | pbcopy
-# inside psql, paste    
-
-# create sql dump
-ogr2ogr -f PGDump sqf_2010.sql 2010.csv 
-
-# import data
-psql -d nyclu -f sqf_2010.sql
-
-# create a geometry column
-SELECT AddGeometryColumn ('public','sqf_2010','the_geom',4326,'POINT',2);
-    
-# populate geom
-UPDATE "sqf_2010" SET the_geom = ST_Transform(ST_GeomFromText('POINT('|| xcoord ||' ' || ycoord || ')', 2263), 4326) WHERE coalesce(trim(xcoord),'')  <> '' AND coalesce(trim(ycoord),'')  <> '';
-
-# create index
-CREATE INDEX idx_2010_the_geom ON "2010" USING GIST ( the_geom );
-
-# create new table with the stuff we want in it
-create table state_plane_to_latlng as
-SELECT DISTINCT xcoord, ycoord
-, ST_x(the_geom) as longitude
-, ST_y(the_geom) as latitude
-from "sqf_2010"
-ORDER BY xcoord, ycoord;
-
-# export table to csv
-COPY state_plane_to_latlng TO '/state_plane_to_latlng.csv' CSV HEADER;
-
-# for some reason there's an empty line after the header
-
+We chose to use PostGIS to convert reported State Plane data to Lat/Lng (WGS 84), Note that many web service-based alternatives exist, including http://gitorious.org/tlevine/noaa_post_project/blobs/master/noaa.py but it hits the web
 

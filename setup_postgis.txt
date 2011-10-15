@@ -1,0 +1,20 @@
+## Mac OS X Instructions
+brew install postgis
+brew install gdal --with-postgres
+# from http://russbrooks.com/2010/11/25/install-postgresql-9-on-os-x
+# NB: Out of the box, you authenticate against the DB using the same user account under which you ran brew install.
+#initialize the DB instance
+initdb /usr/local/var/postgres
+# add startup items
+cp /usr/local/Cellar/postgresql/9.0.4/org.postgresql.postgres.plist ~/Library/LaunchAgents
+launchctl load -w ~/Library/LaunchAgents/org.postgresql.postgres.plist
+#start Postgres
+pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start
+
+# Setup example postgis database **file location specified in config** 
+# http://www.postgis.org/docs/ch02.html
+createdb template_postgis
+createlang plpgsql template_postgis
+psql template_postgis -f postgis.sql
+psql template_postgis -f spatial_ref_sys.sql
+
