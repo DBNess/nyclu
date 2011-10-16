@@ -1,0 +1,10 @@
+--Rows in Table vs Rows in CSV post-OGR
+select count(*) from sqf_2010; --601,285 --601,286 --0
+select count(*) from sqf_2009; --581,139 --581,169 --29
+select count(*) from sqf_2008; --540,288 --540,303 --14
+select count(*) from sqf_2007; --472,096 --472,097 --0
+select count(*) from sqf_2006; --506,491 --506,492 --0
+select count(*) from sqf_2005; --398,191 --398,192 --0
+select count(*) from sqf_2004; --
+select count(*) from sqf_2003; --160,851 --160,852 --0
+
